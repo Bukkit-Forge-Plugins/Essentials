@@ -76,10 +76,20 @@ public class EssentialsPlayerListener implements Listener
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerMove(final PlayerMoveEvent event)
 	{
-		if ((!ess.getSettings().cancelAfkOnMove() && !ess.getSettings().getFreezeAfkPlayers())
-			|| event.getFrom().getBlockX() == event.getTo().getBlockX()
-			   && event.getFrom().getBlockZ() == event.getTo().getBlockZ()
-			   && event.getFrom().getBlockY() == event.getTo().getBlockY())
+		if (!ess.getSettings().cancelAfkOnMove() && !ess.getSettings().getFreezeAfkPlayers())
+		{
+			event.getHandlers().unregister(this);
+
+			if (ess.getSettings().isDebug())
+			{
+				LOGGER.log(Level.INFO, "Unregistering move listener");
+			}
+
+			return;
+		}
+		if (event.getFrom().getBlockX() == event.getTo().getBlockX()
+			&& event.getFrom().getBlockZ() == event.getTo().getBlockZ()
+			&& event.getFrom().getBlockY() == event.getTo().getBlockY())
 		{
 			return;
 		}
@@ -130,6 +140,10 @@ public class EssentialsPlayerListener implements Listener
 		if (!user.isJailed())
 		{
 			user.setLastLocation();
+		}
+		if (user.isRecipeSee())
+		{
+			user.getPlayer().getOpenInventory().getTopInventory().clear();
 		}
 		user.updateActivity(false);
 		user.dispose();
@@ -335,14 +349,13 @@ public class EssentialsPlayerListener implements Listener
 			});
 		}
 	}
-	private final static List<String> COMMANDS = Arrays.asList("msg", "r", "mail", "m", "t", "whisper", "emsg", "tell", "er", "reply", "ereply", "email", "action", "describe", "eme", "eaction", "edescribe", "etell", "ewhisper", "pm");
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerCommandPreprocess(final PlayerCommandPreprocessEvent event)
 	{
 		final Player player = event.getPlayer();
 		final String cmd = event.getMessage().toLowerCase(Locale.ENGLISH).split(" ")[0].replace("/", "").toLowerCase(Locale.ENGLISH);
-		if (COMMANDS.contains(cmd))
+		if (ess.getSettings().getSocialSpyCommands().contains(cmd))
 		{
 			for (Player onlinePlayer : ess.getServer().getOnlinePlayers())
 			{
@@ -417,6 +430,7 @@ public class EssentialsPlayerListener implements Listener
 			if (event.getItem() != null && event.getItem().getTypeId() != AIR)
 			{
 				final User user = ess.getUser(event.getPlayer());
+				user.updateActivity(true);
 				if (user.hasPowerTools() && user.arePowerToolsEnabled() && usePowertools(user, event.getItem().getTypeId()))
 				{
 					event.setCancelled(true);
@@ -537,6 +551,14 @@ public class EssentialsPlayerListener implements Listener
 				event.setCancelled(true);
 			}
 		}
+		else if (event.getView().getTopInventory().getType() == InventoryType.WORKBENCH)
+		{
+			User user = ess.getUser(event.getWhoClicked());
+			if (user.isRecipeSee())
+			{
+				event.setCancelled(true);
+			}
+		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -552,8 +574,17 @@ public class EssentialsPlayerListener implements Listener
 			final User user = ess.getUser(event.getPlayer());
 			user.setEnderSee(false);
 		}
+		if (event.getView().getTopInventory().getType() == InventoryType.WORKBENCH)
+		{
+			final User user = ess.getUser(event.getPlayer());
+			if (user.isRecipeSee())
+			{
+				user.setRecipeSee(false);
+				event.getView().getTopInventory().clear();
+			}
+		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
 	public void onPlayerFishEvent(final PlayerFishEvent event)
 	{

@@ -2,10 +2,12 @@ package com.earth2me.essentials;
 
 import static com.earth2me.essentials.I18n._;
 import com.earth2me.essentials.api.ITeleport;
+import com.earth2me.essentials.commands.NoChargeException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.logging.Logger;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
@@ -14,30 +16,30 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 public class Teleport implements Runnable, ITeleport
 {
 	private static final double MOVE_CONSTANT = 0.3;
-
-
+	
+	
 	private class Target
 	{
 		private final Location location;
 		private final String name;
-
+		
 		Target(Location location)
 		{
 			this.location = location;
 			this.name = null;
 		}
-
+		
 		Target(Player entity)
 		{
 			this.name = entity.getName();
 			this.location = null;
 		}
-
+		
 		public Location getLocation()
 		{
 			if (this.name != null)
 			{
-
+				
 				return ess.getServer().getPlayerExact(name).getLocation();
 			}
 			return location;
@@ -56,17 +58,18 @@ public class Teleport implements Runnable, ITeleport
 	private long initY;
 	private long initZ;
 	private Target teleportTarget;
+	private boolean respawn;
 	private Trade chargeFor;
 	private final IEssentials ess;
 	private static final Logger logger = Logger.getLogger("Minecraft");
 	private TeleportCause cause;
-
+	
 	private void initTimer(long delay, Target target, Trade chargeFor, TeleportCause cause)
 	{
-		initTimer(delay, user, target, chargeFor, cause);
+		initTimer(delay, user, target, chargeFor, cause, false);
 	}
-
-	private void initTimer(long delay, IUser teleportUser, Target target, Trade chargeFor, TeleportCause cause)
+	
+	private void initTimer(long delay, IUser teleportUser, Target target, Trade chargeFor, TeleportCause cause, boolean respawn)
 	{
 		this.started = System.currentTimeMillis();
 		this.tpdelay = delay;
@@ -78,12 +81,13 @@ public class Teleport implements Runnable, ITeleport
 		this.teleportTarget = target;
 		this.chargeFor = chargeFor;
 		this.cause = cause;
+		this.respawn = respawn;
 	}
-
+	
 	@Override
 	public void run()
 	{
-
+		
 		if (user == null || !user.isOnline() || user.getLocation() == null)
 		{
 			cancel(false);
@@ -94,7 +98,7 @@ public class Teleport implements Runnable, ITeleport
 			cancel(false);
 			return;
 		}
-
+		
 		if (!user.isAuthorized("essentials.teleport.timer.move")
 			&& (Math.round(teleportUser.getLocation().getX() * MOVE_CONSTANT) != initX
 				|| Math.round(teleportUser.getLocation().getY() * MOVE_CONSTANT) != initY
@@ -115,8 +119,14 @@ public class Teleport implements Runnable, ITeleport
 				teleportUser.sendMessage(_("teleportationCommencing"));
 				try
 				{
-
-					teleportUser.getTeleport().now(teleportTarget, cause);
+					if (respawn)
+					{
+						teleportUser.getTeleport().respawn(cause);
+					}
+					else
+					{
+						teleportUser.getTeleport().now(teleportTarget, cause);
+					}
 					cancel(false);
 					if (chargeFor != null)
 					{
@@ -138,13 +148,13 @@ public class Teleport implements Runnable, ITeleport
 			}
 		}
 	}
-
+	
 	public Teleport(IUser user, IEssentials ess)
 	{
 		this.user = user;
 		this.ess = ess;
 	}
-
+	
 	public void cooldown(boolean check) throws Exception
 	{
 		final Calendar time = new GregorianCalendar();
@@ -160,7 +170,7 @@ public class Teleport implements Runnable, ITeleport
 
 			// When was the last teleport used?
 			final Long lastTime = user.getLastTeleportTimestamp();
-
+			
 			if (lastTime > time.getTimeInMillis())
 			{
 				// This is to make sure time didn't get messed up on last kit use.
@@ -217,7 +227,7 @@ public class Teleport implements Runnable, ITeleport
 		}
 		now(new Target(loc), cause);
 	}
-
+	
 	public void now(Player entity, boolean cooldown, TeleportCause cause) throws Exception
 	{
 		if (cooldown)
@@ -226,7 +236,7 @@ public class Teleport implements Runnable, ITeleport
 		}
 		now(new Target(entity), cause);
 	}
-
+	
 	private void now(Target target, TeleportCause cause) throws Exception
 	{
 		cancel(false);
@@ -241,21 +251,21 @@ public class Teleport implements Runnable, ITeleport
 	{
 		teleport(loc, chargeFor, TeleportCause.PLUGIN);
 	}
-		
+	
 	public void teleport(Location loc, Trade chargeFor, TeleportCause cause) throws Exception
 	{
 		teleport(new Target(loc), chargeFor, cause);
 	}
-
+	
 	public void teleport(Player entity, Trade chargeFor, TeleportCause cause) throws Exception
 	{
 		teleport(new Target(entity), chargeFor, cause);
 	}
-
+	
 	private void teleport(Target target, Trade chargeFor, TeleportCause cause) throws Exception
 	{
 		double delay = ess.getSettings().getTeleportDelay();
-
+		
 		if (chargeFor != null)
 		{
 			chargeFor.isAffordableFor(user);
@@ -271,11 +281,11 @@ public class Teleport implements Runnable, ITeleport
 			}
 			return;
 		}
-
+		
 		cancel(false);
 		warnUser(user, delay);
 		initTimer((long)(delay * 1000.0), target, chargeFor, cause);
-
+		
 		teleTimer = ess.scheduleSyncRepeatingTask(this, 10, 10);
 	}
 
@@ -283,9 +293,8 @@ public class Teleport implements Runnable, ITeleport
 	public void teleportToMe(User otherUser, Trade chargeFor, TeleportCause cause) throws Exception
 	{
 		Target target = new Target(user);
-
 		double delay = ess.getSettings().getTeleportDelay();
-
+		
 		if (chargeFor != null)
 		{
 			chargeFor.isAffordableFor(user);
@@ -301,14 +310,13 @@ public class Teleport implements Runnable, ITeleport
 			}
 			return;
 		}
-
+		
 		cancel(false);
 		warnUser(otherUser, delay);
-		initTimer((long)(delay * 1000.0), otherUser, target, chargeFor, cause);
-
+		initTimer((long)(delay * 1000.0), otherUser, target, chargeFor, cause, false);
 		teleTimer = ess.scheduleSyncRepeatingTask(this, 10, 10);
 	}
-
+	
 	private void warnUser(final IUser user, final double delay)
 	{
 		Calendar c = new GregorianCalendar();
@@ -320,11 +328,47 @@ public class Teleport implements Runnable, ITeleport
 	//The respawn function is a wrapper used to handle tp fallback, on /jail and /home
 	public void respawn(final Trade chargeFor, TeleportCause cause) throws Exception
 	{
+		double delay = ess.getSettings().getTeleportDelay();
+		if (chargeFor != null)
+		{
+			chargeFor.isAffordableFor(user);
+		}
+		cooldown(true);
+		if (delay <= 0 || user.isAuthorized("essentials.teleport.timer.bypass"))
+		{
+			cooldown(false);
+			respawn(cause);
+			if (chargeFor != null)
+			{
+				chargeFor.charge(user);
+			}
+			return;
+		}
+		
+		cancel(false);
+		warnUser(user, delay);
+		initTimer((long)(delay * 1000.0), user, null, chargeFor, cause, true);
+		teleTimer = ess.scheduleSyncRepeatingTask(this, 10, 10);
+	}
+	
+	public void respawn(TeleportCause cause) throws Exception
+	{
 		final Player player = user.getBase();
-		final Location bed = player.getBedSpawnLocation();
-		final PlayerRespawnEvent pre = new PlayerRespawnEvent(player, bed == null ? player.getWorld().getSpawnLocation() : bed, bed != null);
-		ess.getServer().getPluginManager().callEvent(pre);
-		teleport(new Target(pre.getRespawnLocation()), chargeFor, cause);
+		Location bed = player.getBedSpawnLocation();
+		if (bed != null && bed.getBlock().getType() == Material.BED_BLOCK)
+		{
+			now(new Target(bed), cause);
+		}
+		else
+		{
+			if (ess.getSettings().isDebug())
+			{
+				ess.getLogger().info("Could not find bed spawn, forcing respawn event.");
+			}
+			final PlayerRespawnEvent pre = new PlayerRespawnEvent(player, player.getWorld().getSpawnLocation(), false);
+			ess.getServer().getPluginManager().callEvent(pre);
+			now(new Target(pre.getRespawnLocation()), cause);
+		}
 	}
 
 	//The warp function is a wrapper used to teleport a player to a /warp
@@ -332,7 +376,7 @@ public class Teleport implements Runnable, ITeleport
 	{
 		Location loc = ess.getWarps().getWarp(warp);
 		user.sendMessage(_("warpingTo", warp));
-		teleport(new Target(loc), chargeFor, cause);		
+		teleport(new Target(loc), chargeFor, cause);
 	}
 
 	//The back function is a wrapper used to teleport a player /back to their previous location.	

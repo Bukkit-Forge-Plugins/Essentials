@@ -81,7 +81,19 @@ public class Commandgive extends EssentialsCommand
 				{
 					level = enchantment.getMaxLevel();
 				}
-				stack.addEnchantment(enchantment, level);
+				boolean allowUnsafe = ess.getSettings().allowUnsafeEnchantments();
+				if (allowUnsafe && sender instanceof Player && !ess.getUser(sender).isAuthorized("essentials.enchant.allowunsafe"))
+				{
+					allowUnsafe = false;
+				}
+				if (allowUnsafe)
+				{
+					stack.addUnsafeEnchantment(enchantment, level);
+				}
+				else
+				{
+					stack.addEnchantment(enchantment, level);
+				}
 			}
 		}
 
@@ -94,11 +106,11 @@ public class Commandgive extends EssentialsCommand
 		sender.sendMessage(_("giveSpawn", stack.getAmount(), itemName, giveTo.getDisplayName()));
 		if (giveTo.isAuthorized("essentials.oversizedstacks"))
 		{
-			InventoryWorkaround.addItem(giveTo.getInventory(), true, ess.getSettings().getOversizedStackSize(), stack);
+			InventoryWorkaround.addOversizedItems(giveTo.getInventory(), ess.getSettings().getOversizedStackSize(), stack);
 		}
 		else
 		{
-			InventoryWorkaround.addItem(giveTo.getInventory(), true, stack);
+			InventoryWorkaround.addItems(giveTo.getInventory(), stack);
 		}
 		giveTo.updateInventory();
 	}
