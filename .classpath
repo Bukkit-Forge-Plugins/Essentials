@@ -1,7 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="Essentials/src"/>
+	<classpathentry kind="src" path="EssentialsGroupManager/src"/>
+	<classpathentry kind="src" path="EssentialsChat/src"/>
+	<classpathentry kind="src" path="EssentialsGroupBridge/src"/>
+	<classpathentry kind="src" path="EssentialsXMPP/src"/>
+	<classpathentry kind="src" path="EssentialsGeoIP/src"/>
+	<classpathentry kind="src" path="EssentialsSpawn/src"/>
+	<classpathentry kind="src" path="EssentialsProtect/src"/>
+	<classpathentry kind="src" path="EssentialsAntiBuild/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/bukkit-0.0.1-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/Permissions3.jar"/>
+	<classpathentry kind="lib" path="lib/BOSEconomy7.jar"/>
+	<classpathentry kind="lib" path="lib/bPermissions.jar"/>
+	<classpathentry kind="lib" path="lib/bpermissions2.jar"/>
+	<classpathentry kind="lib" path="lib/c3p0-0.9.1.2.jar"/>
+	<classpathentry kind="lib" path="lib/iCo4.jar"/>
+	<classpathentry kind="lib" path="lib/iCo5.jar"/>
+	<classpathentry kind="lib" path="lib/iCo6.jar"/>
+	<classpathentry kind="lib" path="lib/lombok-0.10.8.jar"/>
+	<classpathentry kind="lib" path="lib/MultiCurrency.jar"/>
+	<classpathentry kind="lib" path="lib/Permissions.jar"/>
+	<classpathentry kind="lib" path="lib/PermissionsBukkit-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/PermissionsEx-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/PermissionsEx.jar"/>
+	<classpathentry kind="lib" path="lib/Privileges.jar"/>
+	<classpathentry kind="lib" path="lib/smack-3.2.1.jar"/>
+	<classpathentry kind="lib" path="lib/smack-3.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/Vault.jar"/>
+	<classpathentry kind="src" path="/BukkitForge"/>
+	<classpathentry kind="lib" path="/BukkitForge/lib/api/bukkitAPI.jar"/>
+	<classpathentry kind="lib" path="/BukkitForge/lib/argo-2.25.jar"/>
+	<classpathentry kind="lib" path="/BukkitForge/lib/commons-lang-2.3.jar"/>
+	<classpathentry kind="lib" path="/BukkitForge/lib/ebean-2.8.1.jar"/>
+	<classpathentry kind="lib" path="/BukkitForge/lib/guava10-renamed.jar"/>
+	<classpathentry kind="lib" path="/BukkitForge/lib/jansi-1.9.jar"/>
+	<classpathentry kind="lib" path="/BukkitForge/lib/snakeyaml-1.9.jar"/>
+	<classpathentry kind="lib" path="/BukkitForge/lib/sqlite-jdbc-3.7.2.jar"/>
+	<classpathentry kind="lib" path="/BukkitForge/lib/gson-2.1.jar"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>

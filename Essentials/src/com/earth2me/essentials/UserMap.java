@@ -1,9 +1,9 @@
 package com.earth2me.essentials;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import guava10.com.google.common.cache.Cache;
+import guava10.com.google.common.cache.CacheBuilder;
+import guava10.com.google.common.cache.CacheLoader;
+import guava10.com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
